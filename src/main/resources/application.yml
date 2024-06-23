@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    name: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/postgres
+  jpa:
+    open-in-view:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+jwt:
+  algorithm:
+    key: secret
+  token:
+    lifetime: 15
