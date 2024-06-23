@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class BaseExceptionHandler {
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<SimpleResponse> handleBaseException(BaseException ex){
-        return ResponseEntity.status(ex.getHttpStatus()).body(ex.getSimpleResponse());
+        return ResponseEntity.status(ex.getHttpStatus()).body(new SimpleResponse(ex.getMessage()));
     }
+
 }
