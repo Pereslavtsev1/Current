@@ -1,7 +1,6 @@
-package com.example.current.api.contollers.auth;
+package com.example.current.api.contollers.user;
 
 import com.example.current.model.LocalUser;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
