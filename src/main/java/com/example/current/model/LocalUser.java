@@ -1,5 +1,6 @@
 package com.example.current.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +28,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "local_user")
-public class LocalUser implements UserDetails {
+public class LocalUser {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +37,7 @@ public class LocalUser implements UserDetails {
 
   @Column(name = "username", nullable = false, unique = true)
   private String username;
-
+  @JsonIgnore
   @Column(name = "password", nullable = false)
   private String password;
 
@@ -48,33 +49,9 @@ public class LocalUser implements UserDetails {
 
   @Column(name = "last_name", nullable = false)
   private String lastName;
-
+  @JsonIgnore
   @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Address> addresses = new ArrayList<>();
 
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return true;
-  }
 }
