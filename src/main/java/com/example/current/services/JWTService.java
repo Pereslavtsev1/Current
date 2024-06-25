@@ -13,14 +13,25 @@ import java.util.Date;
 public class JWTService {
     @Value("${jwt.algorithm.key}")
     private String key;
-    @Value("${jwt.token.lifetime}")
-    private long lifetime;
+    @Value("${jwt.token.token-lifetime}")
+    private long tokenLifetime;
+    @Value("${jwt.token.email-token-lifetime}")
+    private long emailLifetime;
 
     public String generateToken(LocalUser user) {
         return JWT.create()
                 .withClaim("USERNAME",user.getUsername())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + (60 * 1000 * lifetime)))
+                .withExpiresAt(new Date(System.currentTimeMillis() + (60 * 1000 * tokenLifetime)))
+                .sign(Algorithm.HMAC256(key));
+
+
+    }
+    public String generateVerificationJWTEmailToken(LocalUser user) {
+        return JWT.create()
+                .withClaim("EMAIL_KEY",user.getUsername())
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + (60 * 1000 * emailLifetime)))
                 .sign(Algorithm.HMAC256(key));
 
 
