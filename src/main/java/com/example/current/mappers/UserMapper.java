@@ -14,11 +14,11 @@ public class UserMapper {
     private final JWTService jwtService;
     public LocalUser fromRegistrationBodyToUser(RegistrationBody registrationBody) {
         LocalUser user = new LocalUser();
-        user.setEmail(registrationBody.email());
-        user.setUsername(registrationBody.username());
-        user.setFirstName(registrationBody.firstName());
-        user.setLastName(registrationBody.lastName());
-        user.setPassword(passwordEncoder.encode(registrationBody.password()));
+        user.setEmail(registrationBody.getEmail());
+        user.setUsername(registrationBody.getUsername());
+        user.setFirstName(registrationBody.getFirstName());
+        user.setLastName(registrationBody.getLastName());
+        user.setPassword(passwordEncoder.encode(registrationBody.getPassword()));
         return user;
     }
 }

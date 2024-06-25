@@ -28,12 +28,12 @@ public class UserService {
     private final EmailService emailService;
     private final VerificationJWTEmailTokenRepository verificationJWTEmailTokenRepository;
     public Long register(RegistrationBody registrationBody)  {
-        var email = registrationBody.email();
-        var username = registrationBody.username();
+        var email = registrationBody.getEmail();
+        var username = registrationBody.getUsername();
         if (repository.existsByEmail(email)){
             throw new UserEmailAlreadyExist(String.format("User with email '%s' already exist",email),HttpStatus.CONFLICT);
         }
-        if (repository.existsByUsername(registrationBody.username())){
+        if (repository.existsByUsername(registrationBody.getUsername())){
             throw new UsernameAlreadyExist(String.format("User with username '%s' already exist",username),HttpStatus.CONFLICT);
         }
         var user = mapper.fromRegistrationBodyToUser(registrationBody);
@@ -49,14 +49,14 @@ public class UserService {
     }
 
     public LoginResponse login(LoginBody loginBody)  {
-        var user = repository.findByUsername(loginBody.username());
+        var user = repository.findByUsername(loginBody.getUsername());
 
         if (user.isEmpty()) {
-            throw new UsernameNotFoundException(String.format("Username '%s' not found", loginBody.username()), HttpStatus.BAD_REQUEST);
+            throw new UsernameNotFoundException(String.format("Username '%s' not found", loginBody.getUsername()), HttpStatus.BAD_REQUEST);
         }
 
         LocalUser foundUser = user.get();
-        if (!encryptionService.verifyPassword(foundUser.getPassword(), loginBody.password())) {
+        if (!encryptionService.verifyPassword(foundUser.getPassword(), loginBody.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password", HttpStatus.BAD_REQUEST);
         }
         if (foundUser.getEmailVerified()){
