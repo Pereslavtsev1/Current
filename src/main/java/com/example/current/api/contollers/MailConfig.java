@@ -12,6 +12,7 @@ public class MailConfig {
     private String host;
     @Value("${gmail.port}")
     private Integer port;
+
     @Bean
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();

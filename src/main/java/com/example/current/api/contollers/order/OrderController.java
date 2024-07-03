@@ -17,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+
     @GetMapping()
     public ResponseEntity<List<WebOrder>> getOrders(@AuthenticationPrincipal LocalUser user) {
         return ResponseEntity.ok(orderService.getAllOrders(user));

@@ -3,6 +3,7 @@ spring:
     name: postgres
     password: postgres
     url: jdbc:postgresql://localhost:5432/postgres
+
   jpa:
     open-in-view:
     generate-ddl: true
@@ -19,9 +20,13 @@ mail:
   from: "test"
 app:
   frontend:
-    url: "[::1]:8080/api/v1/auth/verify"
+    emailVerifyUrl: "[::1]:8080/api/v1/auth/verify"
+    passwordResetUrl: "[::1]:8080/api/v1/auth/forgot-password"
 
-# SMTP configuration
+
+
+
+
 gmail:
   host: localhost
   port: 25

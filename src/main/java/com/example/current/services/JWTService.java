@@ -3,6 +3,7 @@ package com.example.current.services;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.current.model.LocalUser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,20 @@ public class JWTService {
 
 
     }
+    public String generatePasswordResetJWT(LocalUser user) {
+        return JWT.create()
+                .withClaim("PASSWORD_RESET_EMAIL",user.getEmail())
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + (60 * 1000 * 30)))
+                .sign(Algorithm.HMAC256(key));
+
+    }
+    public String getResetPasswordEmailFromJWT(String token) {
+        DecodedJWT jwt = JWT.require(Algorithm.HMAC256(key)).build().verify(token);
+        return jwt.getClaim("PASSWORD_RESET_EMAIL").asString();
+    }
     public String getUsernameFromJwt(String token) {
+        DecodedJWT jwt = JWT.require(Algorithm.HMAC256(key)).build().verify(token)     ;
         return JWT.decode(token).getClaim("USERNAME").asString();
     }
 }

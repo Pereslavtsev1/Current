@@ -1,5 +1,6 @@
-package com.example.current.api.security.config;
+package com.example.current.config;
 
+import com.example.current.security.JWTRequestFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

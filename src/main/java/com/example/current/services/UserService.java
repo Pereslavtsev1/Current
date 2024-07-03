@@ -3,6 +3,7 @@ package com.example.current.services;
 import com.example.current.api.model.LoginBody;
 import com.example.current.api.model.LoginResponse;
 import com.example.current.api.model.RegistrationBody;
+import com.example.current.api.model.ResetPasswordRequest;
 import com.example.current.exceptions.*;
 import com.example.current.mappers.UserMapper;
 import com.example.current.model.LocalUser;
@@ -27,14 +28,15 @@ public class UserService {
     private final JWTService jwtService;
     private final EmailService emailService;
     private final VerificationJWTEmailTokenRepository verificationJWTEmailTokenRepository;
-    public Long register(RegistrationBody registrationBody)  {
+
+    public Long register(RegistrationBody registrationBody) {
         var email = registrationBody.getEmail();
         var username = registrationBody.getUsername();
-        if (repository.existsByEmail(email)){
-            throw new UserEmailAlreadyExist(String.format("User with email '%s' already exist",email),HttpStatus.CONFLICT);
+        if (repository.existsByEmail(email)) {
+            throw new UserEmailAlreadyExist(String.format("User with email '%s' already exist", email), HttpStatus.CONFLICT);
         }
-        if (repository.existsByUsername(registrationBody.getUsername())){
-            throw new UsernameAlreadyExist(String.format("User with username '%s' already exist",username),HttpStatus.CONFLICT);
+        if (repository.existsByUsername(registrationBody.getUsername())) {
+            throw new UsernameAlreadyExist(String.format("User with username '%s' already exist", username), HttpStatus.CONFLICT);
         }
         var user = mapper.fromRegistrationBodyToUser(registrationBody);
         var token = createVerificationToken(user);
@@ -59,42 +61,41 @@ public class UserService {
         if (!encryptionService.verifyPassword(foundUser.getPassword(), loginBody.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password", HttpStatus.BAD_REQUEST);
         }
-        if (foundUser.getEmailVerified()){
-            return new LoginResponse(jwtService.generateToken(foundUser),true,"");
+        if (foundUser.getEmailVerified()) {
+            return new LoginResponse(jwtService.generateToken(foundUser), true);
         } else {
             try {
                 resendVerificationTokenIfNeeded(foundUser);
-            } catch (UserNotVerifiedException ex) {
-                    throw new EmailNotVerifiedException("Your account not verified email address ",HttpStatus.CONFLICT);
+            } catch (UserNotVerifiedException | EmailFailureException ex) {
+                throw new EmailNotVerifiedException("Your account not verified email address ", HttpStatus.CONFLICT);
             }
         }
         return null;
     }
 
 
-    private void resendVerificationTokenIfNeeded(LocalUser user) throws EmailFailureException, UserNotVerifiedException {
+    private void resendVerificationTokenIfNeeded(LocalUser user) throws EmailFailureException {
         List<VerificationJWTEmailToken> verificationTokens = user.getVerificationTokens();
-        boolean resend = verificationTokens.isEmpty()
-                || verificationTokens.get(0).getExpiresAt().before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000)));
+        boolean resend = verificationTokens.isEmpty() || verificationTokens.get(0).getExpiresAt().before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000)));
 
         if (resend) {
             VerificationJWTEmailToken verificationToken = createVerificationToken(user);
             verificationJWTEmailTokenRepository.save(verificationToken);
             emailService.sendVerificationMail(verificationToken);
         }
-            throw new UserNotVerifiedException(resend);
+        throw new UserNotVerifiedException(resend);
 
     }
 
     public VerificationJWTEmailToken createVerificationToken(LocalUser user) {
-        var token = VerificationJWTEmailToken.builder()
-                .token(jwtService.generateVerificationJWTEmailToken(user)).build();
+        var token = VerificationJWTEmailToken.builder().token(jwtService.generateVerificationJWTEmailToken(user)).build();
         token.setExpiresAt(new Timestamp(System.currentTimeMillis()));
         token.setUser(user);
         user.getVerificationTokens().add(token);
 
         return token;
     }
+
     @Transactional
     public boolean verifyUser(String token) {
         Optional<VerificationJWTEmailToken> opToken = verificationJWTEmailTokenRepository.findByToken(token);
@@ -111,4 +112,28 @@ public class UserService {
         return false;
     }
 
+
+    public void forgotPassword(String email) throws EmailFailureException {
+        var opUser = repository.findByEmail(email);
+        if (opUser.isPresent()) {
+            var user = opUser.get();
+            var token = jwtService.generatePasswordResetJWT(user);
+            emailService.sendPasswordResetEmail(user,token);
+        } else {
+            throw new EmailNotFoundException(String.format("User with email '%s' not found", email), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    public void resetPassword(@org.jetbrains.annotations.NotNull ResetPasswordRequest request) {
+        var email = jwtService.getResetPasswordEmailFromJWT(request.getToken());
+        var opUser = repository.findByEmail(email);
+        if (opUser.isPresent()) {
+            var user = opUser.get();
+            user.setPassword(encryptionService.passwordHash(request.getPassword()));
+            repository.save(user);
+        } else {
+            throw new EmailNotFoundException(String.format("User with email '%s' not found", email), HttpStatus.BAD_REQUEST);
+        }
+    }
 }
